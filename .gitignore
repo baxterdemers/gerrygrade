@@ -2,3 +2,5 @@
 .ipynb_checkpoints
 *.DS_Store
 ve/
+__pycache__/
+.gitignore

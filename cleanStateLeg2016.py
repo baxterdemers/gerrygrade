@@ -1,85 +1,57 @@
-# To add a new cell, type '# %%'
-# To add a new markdown cell, type '# %% [markdown]'
-# %%
-import gerrymetrics as g
+#%%
 import pandas as pd
-import numpy as np
-import IPython.display as ipd
+import warnings
 
-from collections import defaultdict
-print(pd.__version__)
+import ccm
 
-def aggregate_votes(df):
-    # aggregate votes cast by different modes for the same 'State', 'District', 'candidate', 'Party' tuple
-    df = df.groupby(['State', 'District', 'candidate', 'Party']).sum().reset_index()
-    df = df[['State', 'District', 'Party', 'candidate', 'candidatevotes']]
+warnings.filterwarnings("ignore")
 
-    # for each candidate, get the index of the party from which they recieved the most votes
-    party_map = df.groupby(['candidate', 'State', 'District']).idxmax()
-    party_map = party_map.reset_index()
-    many_party_df = df
+def fix_upper_chamber(df):
+    '''
+    fix the issues from the MEDSL data set pertaining to the 2016 election results
+    for upper chambers of state legislatures. Expects 2016 MEDSL results column names.
+    '''
 
-    # combine votes for the same candidate which were cast under different party labels
-    df = df.groupby(['candidate', 'State', 'District']).sum().reset_index()
-    df['party_index'] = party_map['candidatevotes']
-    df['Party'] = df['party_index'].apply(lambda party_idx: many_party_df.loc[party_idx].Party)
-    df = df.drop(columns=['party_index'])
+    df['party'][(df.state_po == 'NV') & (df.candidate.isin(['Patricia "Pat" Spearman', 'Joyce Woodhouse']))] = 'democrat'
+    df['party'][(df.state_po == 'NV') & (df.candidate.isin(['Arsen "Arsen T" Ter-Petrosyan', 'Carrie Buck']))] = 'republican'
+
     return df
 
-def explore_third_parties(df):
-    for state, group in df.groupby('State'):
-        total_votes = group.candidatevotes.sum()
-        party_votes = group.groupby('Party').sum().reset_index().sort_values(ascending=False,by='candidatevotes')
-        for _, row in party_votes.iterrows():
-            party = row.Party
-            vote_share = row.candidatevotes / total_votes
-            if (party not in ['republican', 'democrat', 'independent', 'green', 'libertarian']) and vote_share > .01:
-                print(state, party, "{0:.0%}".format(vote_share))
-
-def remove_states_with_third_party_wins(df):
-    index_to_winning_party = df.select_dtypes(include=np.number).idxmax(axis=1).reset_index()
-    states_to_remove = df[~index_to_winning_party[0].isin(['democrat', 'republican'])]['State'].unique()
-    print("Removing {} from the dataframe because of 3rd party wins.".format(states_to_remove))
-    df = df[~df['State'].isin(states_to_remove)]
+def fix_lower_chamber(df):
+    '''
+    fix the issues from the MEDSL data set pertaining to the 2016 election results
+    for lower chambers of state legislatures. Expects 2016 MEDSL results column names.
+    '''
     return df
 
-def create_columns_for_party_votes(df):
-    # the democratic farmer labor party is the name of the democratic party in Minnesota
-    df.Party = df.Party.apply(lambda x: 'democrat' if x=='democratic farmer labor' else x)
-    return df.pivot_table(index=['State','District'], columns='Party', values='candidatevotes',fill_value=0).reset_index()
-
-# State,Year,District,Dem Votes,GOP Votes,D Voteshare,Incumbent,Party
-def conform_to_gerrymetrics(df):
-    df = aggregate_votes(df)
-    df = create_columns_for_party_votes(df)
-    df = remove_states_with_third_party_wins(df)
-    df['Year'] = 2016
-    df = df.rename(columns={'democrat':'Dem Votes', 'republican': 'GOP Votes'})
-    df['D Voteshare'] = df['Dem Votes'] / (df['Dem Votes'] + df['GOP Votes'])
-    df = df[['State','Year','District','Dem Votes','GOP Votes','D Voteshare']]
-    df = df.astype({'Dem Votes':'int32', 'GOP Votes':'int32'})
-    return df
-
-# missing results from maryland, 'Alabama', 'Louisiana', 'Mississippi'
 df = pd.read_csv('election_data/stateoffices2016.csv')
-# remove provisional ballots
-df = df[df['mode'] != 'provisional']
 
-UPPER_OFFICES = ['State Senator']
-LOWER_OFFICES = ['State Representative', 'State Legislature', 'State House Delegate', 'State Representative Pos. 1', 'State Representative Pos. 2', 'State Assembly Member', 'State House, Representative A', 'State House, Representative B', 'General Assembly']
-# introduces the convention of the target format that gerrymetrics expects
-df = df.rename(columns={'year':'Year', 'state_po':'State', 'district':'District', 'party':'Party'})
+#### 2018 specific modifications for all chambers ####
 
-print(df.State.nunique(), ' states are in df')
-upper_raw = df[df['office'].isin(UPPER_OFFICES)]
-print(upper_raw.State.nunique(), ' states are in upper_raw')
-lower_raw = df[df['office'].isin(LOWER_OFFICES)]
-print(lower_raw.State.nunique(), ' states are in lower_raw')
+#### Data processing ####
+UPPER_OFFICES = ['State Senator', 'State Senate']
+upper_df = df[df['office'].isin(UPPER_OFFICES)]
+upper_name = 'upper-chammber-state-legislature-elections-2016'
+upper_exclusion_dict = {
+    'No general election' : {'VA', 'NJ', 'MS', 'LA', 'MI'},
+    'Multi-member districts' : {'VT'},
+    'Dataset missing districts' : {'AR'},
+    'Unicameral exclusion' : {'NE'}
+}
+ccm.run(upper_df, upper_name, fix_upper_chamber, upper_exclusion_dict)
 
-lower = conform_to_gerrymetrics(lower_raw)
-print(lower.head())
-upper = conform_to_gerrymetrics(upper_raw)
-print(upper.head())
+print()
+print("Lower Chamber State Legislature Elections")
+LOWER_OFFICES = ['State Representative', 'State Legislature', 'State House Delegate', 'State Representative Pos. 1', 'State Representative Pos. 2', 'State Assembly Member', 'State House, Representative A', 'State House, Representative B', 'General Assembly', 'State Assembly Representative', 'House of Delegates Member', 'State Representative A', 'State Representative B']
+lower_df = df[df['office'].isin(LOWER_OFFICES)]
+lower_name = 'lower-chammber-state-legislature-elections-2016'
+lower_exclusion_dict = {
+    'No general election' : {'VA', 'MS', 'LA', 'NJ', },
+    'Multi-member districts' : {'AZ', 'ND', 'NH', 'SD', 'VT', 'WA', 'WV'},
+    'Unicameral exclusion' : {'NE'}
+}
+ccm.run(lower_df, lower_name, fix_lower_chamber, lower_exclusion_dict)
 
-lower.to_csv('election_data/2016_state_leg_election_results_lower_chamber.csv')
-upper.to_csv('election_data/2016_state_leg_election_results_upper_chamber.csv')
+
+
+# %%
