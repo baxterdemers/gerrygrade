@@ -303,6 +303,6 @@ def run(df, name, fix_method=lambda x: x, exclusion_dict={}):
     print()
     states_ommitted = state_po_set.difference(states_included)
     print("States ommitted ({}): {}".format(len(states_ommitted), states_ommitted))
-    file_path = "election_data/gerrymetrics_format/{}-gerrymetrics-format.csv".format(name)
+    file_path = "election_data/gerrymetrics_format/{}.csv".format(name)
     print("Saving df to : ", file_path)
     df.to_csv(file_path, index=False)

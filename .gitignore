@@ -4,3 +4,5 @@
 ve/
 __pycache__/
 .gitignore
+exports/us_house/avg_wins.csv
+/exports/us_house/uncontested*

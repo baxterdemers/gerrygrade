@@ -111,13 +111,9 @@ def get_gerry_data(elections_df_fp):
     ]
 
     start = "election_data/gerrymetrics_format/"
-    end = "-gerrymetrics-format.csv"
-    file_id = elections_df_fp[
-        elections_df_fp.find(start) + len(start) : elections_df_fp.rfind(end)
-    ]
-    print("\n\n" + file_id)
+    file_id = elections_df_fp[len(start):]
     print(df.head())
-    df.to_csv("exports/state_leg/" + file_id + ".csv", index=False)
+    df.to_csv("exports/" + file_id, index=False)
 
 
 file_path_lst = listdir("election_data/gerrymetrics_format/")

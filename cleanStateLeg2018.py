@@ -254,7 +254,7 @@ def fix_lower_chamber(df):
     return df
 
 
-df = pd.read_csv("election_data/state_overall_2018.csv")
+df = pd.read_csv("election_data/MEDSL_format/state_overall_2018.csv")
 
 #### 2018 specific modifications for all chambers ####
 

@@ -33,7 +33,7 @@ def fix_lower_chamber(df):
     return df
 
 
-df = pd.read_csv("election_data/stateoffices2016.csv")
+df = pd.read_csv("election_data/MEDSL_data/stateoffices2016.csv")
 
 #### Data processing ####
 UPPER_OFFICES = ["State Senator", "State Senate"]

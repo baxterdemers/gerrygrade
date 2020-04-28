@@ -1,18 +1,35 @@
-# Cleaning MEDSL State Legislature Election Results
+# Finding patterns in gerrymandered states
+This repository contains the python scripts used to build a spreadsheet for analyzing the commonalities between gerrymandered states. To do so I used election results data from 
+and [MEDSL](https://electionlab.mit.edu/) statistical tests in the [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests) package.
 
-The goal of the data cleaning in this repo is to fix, clean, and transform the election results data from [MEDSL](https://electionlab.mit.edu/) into the formatted expected by [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests).
+The main steps were:
+1. Clean MEDSL State Legislature election results to remove errors (see `cleanStateLeg2016.py` and `cleanStateLeg2018.py`)
+2. Conform MEDSL election results data to gerrymetrics expectations (e.g. remove legislative chambers with third party wins) and tranform the data to the schema expected by gerrymetrics (see `ccm.py`)
+3. Running gerrymetrics on the election results and adding additional columns e.g. number of uncontested seats won by each party (see `state_leg_gerrymetrics.py`)
 
-**MEDSL Data corrections**
+## Source Data
 
-The methods with the 'fix' prefix (in `cleanStateLeg2016` and `cleanStateLeg2018`) implement corrections to the MEDSL source data while not modifying the schema. Therefore, they would be generally applicable to anyone hoping to use a cleaner version of the dataset. 
+### MEDSL Data
+[2018 State Legislature Election Results](https://github.com/MEDSL/2018-elections-official/blob/master/state_overall_2018.csv)
 
-Additionally, these methods are designed to be readable and reproducible such that one could add or subtract individual changes to transform the dataset subject to what they believe is most accurate for their purposes. The source data contains an non-negligible number of inaccuracies which I discovered when performing validation for use with [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests). Therefore, the errors discovered and their corresponding fixes are limited in scope to state legislature results that are useable with gerrymetrics (e.g. excluding legislative chambers with multimember districts - more under 'reasons for ommision'). If one wishes to use the dataset in a more holisitic manner, I would highly reccomend additional validation to looks for inconsitencies.
+[2016 State Legislature Election Results](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/XSOFHD)
 
-As mentioned above, the fixes are intended to be self-documenting, but I will now briefly cover some of the methodogy used to discover the errors.
-* Look for candidates missing a party label (e.g. Daniele Monroe-Moreno of Nevada, 2018)`Fix: Assign candidate correct party label`
-* Look for candidates who recieved votes in multiple districts (e.g. Daniel Zolnikov of Montana, 2018) `Fix: Assign candidate correct vote total in correct district. Remove candidate from incorrect district(s)`
-* Look for districts won by candidates without a party label `Fix: Assign candidate correct party label`
-* Look for districts with multiple candidates from the same party 
+### PGP Data
+
+[Congressional Election Reults](https://github.com/PrincetonUniversity/gerrymandertests/blob/master/election_data/congressional_election_results_post1948.csv) 
+
+## 1. Cleaning MEDSL State Legislature Election Results
+
+The methods with the 'fix' prefix (in `cleanStateLeg2016.py` and `cleanStateLeg2018.py`) implement corrections to the MEDSL source data while not modifying the schema. Therefore, they would be generally applicable to anyone hoping to use a cleaner version of the dataset. 
+
+Additionally, these methods are designed to be readable and reproducible such that one could easily transform the dataset to what they believe is most accurate using the framework in this repo. The source data contains an non-negligible number of inaccuracies which I discovered when performing validation for use with [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests). Therefore, the errors discovered and their corresponding fixes are limited in scope to state legislature results that are useable with gerrymetrics (e.g. excluding legislative chambers with multimember districts - more under 'reasons for ommision'). If one wishes to use the dataset in a more comprehensive manner, I would highly reccomend additional validation to looks for inconsitencies.
+
+For a holistic view of the errors I found and corrected, review the methods with the 'fix' prefix in `cleanStateLeg2016.py` and `cleanStateLeg2018.py`. I will now briefly cover some of the common types of errors and the fixes I made to address them.
+
+* Candidates missing a party label (e.g. Daniele Monroe-Moreno of Nevada, 2018)`Fix: Assign candidate correct party label`
+* Candidates who recieved votes in multiple districts (e.g. Daniel Zolnikov of Montana, 2018) `Fix: Assign candidate correct vote total in correct district. Remove candidate from incorrect district(s)`
+* Districts won by candidates without a party label `Fix: Assign candidate correct party label`
+* Districts with multiple candidates from the same party 
     * This could mean a multimember district like in Vermont `Fix: N/A`
     * This could mean a general election with multiple candidates from one party, but just one winner e.g. California Senate, District 22, 2018 had two democrats. `Fix: N/A`
     * OR this could mean that candidates had an incorrect district label.
@@ -20,18 +37,17 @@ As mentioned above, the fixes are intended to be self-documenting, but I will no
 
 The corrections were primarily made with respect to [Ballotpedia](https://ballotpedia.org/State_legislative_elections). I attempted to further validate the ballotpedia content when possible e.g. visting a candidate's website to determine their politial party. 
 
-**Transformations and cleaning for [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests)**
+## 2. Conform and Transform to gerrymetrics schema
 
-* Multimember districts were excluded because gerrymetrics expects there to be one seat per district. Such districts were discovered by 
+* Multimember districts were excluded because gerrymetrics expects there to be one seat per district. 
+* 'Invalid/ Incomplete data' implies the legislative chamber ommitted has districts in which no votes were cast according to the MEDSL results.
 
 ## 2018 
 
-[Source data](https://github.com/MEDSL/2018-elections-official/blob/master/state_overall_2018.csv)
-
 ### Upper Chambers
-States included (38): `{'CA', 'IA', 'NY', 'WA', 'IN', 'MI', 'DE', 'AK', 'OK', 'MO', 'OR', 'FL', 'TX', 'CT', 'GA', 'SD', 'ID', 'TN', 'ME', 'WV', 'PA', 'HI', 'WY', 'OH', 'MT', 'RI', 'MA', 'IL', 'ND', 'WI', 'UT', 'KY', 'KS', 'NV', 'MD', 'MN', 'NH', 'AZ'}`
+States included (41): `{'MN', 'MT', 'PA', 'DE', 'NC', 'WV', 'RI', 'IA', 'NH', 'CA', 'WY', 'IN', 'WA', 'HI', 'AZ', 'MI', 'NV', 'OR', 'SD', 'TN', 'OK', 'MO', 'UT', 'ID', 'CT', 'OH', 'WI', 'AK', 'FL', 'ME', 'KS', 'TX', 'AR', 'CO', 'IL', 'MA', 'KY', 'MD', 'ND', 'NY', 'GA'}`
 
-States ommitted (12): `{'AR', 'CO', 'NC', ‘VA', 'MS', 'LA', 'NJ’, 'NM', 'SC’, ‘VT’, 'AL', 'NE'}`
+States ommitted (9): `{'NE', 'SC', 'NJ', 'VT', 'AL', 'LA', 'VA', 'NM', 'MS'}`
 
 **Reasons for ommision:**
 * No general election (6): `{‘VA', 'MS', 'LA', 'NJ’, 'NM', 'SC’}`
@@ -40,9 +56,9 @@ States ommitted (12): `{'AR', 'CO', 'NC', ‘VA', 'MS', 'LA', 'NJ’, 'NM', 'SC�
 * Invalid/incomplete data(1): `{‘AL’}`
 
 ### Lower Chambers
-States included (30): `{'CA', 'IA', 'NY', 'IN', 'MI', 'DE', 'OK', 'MO', 'OR', 'FL', 'TX', 'CT', 'GA', 'SC', 'TN', 'PA', 'HI', 'CO', 'OH', 'AR', 'MT', 'RI', 'IL', 'UT', 'KY', 'KS', 'NC', 'NV', 'NM', 'MN'}`
+States included (33): `{'MN', 'MT', 'PA', 'DE', 'NC', 'SC', 'RI', 'IA', 'CA', 'IN', 'HI', 'MI', 'NV', 'OR', 'TN', 'OK', 'MO', 'UT', 'ID', 'CT', 'OH', 'WI', 'FL', 'KS', 'TX', 'AR', 'CO', 'IL', 'MD', 'KY', 'NM', 'NY', 'GA'}`
 
-States ommitted (20): `{'WA', 'MS', 'AK', 'NE', 'VA', 'SD', 'LA', 'ID', 'ME', 'WV', 'WY', 'AL', 'NJ', 'VT', 'MA', 'ND', 'WI', 'MD', 'NH', 'AZ'}`
+States ommitted (17): `{'WA', 'NE', 'AK', 'NJ', 'VT', 'ME', 'AZ', 'AL', 'LA', 'VA', 'MA', 'ND', 'NH', 'WY', 'SD', 'WV', 'MS'}`
 
 **Reasons for ommision:**
 * No general election (4): `{‘VA', 'MS', 'LA', 'NJ’}`
@@ -52,8 +68,6 @@ States ommitted (20): `{'WA', 'MS', 'AK', 'NE', 'VA', 'SD', 'LA', 'ID', 'ME', 'W
 * Third party wins (4): `{‘AK’, ‘MA’, ‘ME’, 'WY'}`
 
 ## 2016
-
-[Source data](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/XSOFHD)
 
 ### Upper Chambers
 States included (40): `{'DE', 'TX', 'MA', 'TN', 'IN', 'CO', 'NH', 'OK', 'AK', 'WY', 'WI', 'GA', 'ID', 'KS', 'ND', 'HI', 'NM', 'WA', 'NV', 'RI', 'OH', 'MT', 'FL', 'WV', 'ME', 'SC', 'IA', 'KY', 'PA', 'AZ', 'NC', 'MN', 'NY', 'OR', 'MO', 'UT', 'IL', 'CT', 'CA', 'SD'}`
@@ -78,3 +92,7 @@ States ommitted (17): `{'MD', 'AL', 'WV', 'ME', 'ND', 'VT', 'MS', 'SD', 'NH', 'A
 * Unicameral exclusion (1): `{'NE'}`
 * Not in MEDSL Dataset (2): `{'MD', 'AL'}`
 * Third party wins (3): `{'AK' 'ME' 'RI'}`
+
+## 3. Running gerrymetrics
+
+Talk about virtual environment 
