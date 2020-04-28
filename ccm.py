@@ -53,6 +53,8 @@ state_po_set = {
     "WY",
 }
 
+# CCM: Clean and Confrom MEDSL (to the data schema expected by gerrymetrics)
+
 # Data exploration methods
 
 
@@ -257,6 +259,8 @@ def conform_to_gerrymetrics(df):
     df["D Voteshare"] = df["Dem Votes"] / (df["Dem Votes"] + df["GOP Votes"])
     df = df[["State", "Year", "District", "Dem Votes", "GOP Votes", "D Voteshare"]]
     df = df.astype({"Dem Votes": "int32", "GOP Votes": "int32"})
+    df['Incumbent'] = 0
+    df['Party'] = (df['Dem Votes'].gt(df['GOP Votes'])).apply(lambda is_dem: 'D' if is_dem else 'R')
     return df
 
 
@@ -299,6 +303,6 @@ def run(df, name, fix_method=lambda x: x, exclusion_dict={}):
     print()
     states_ommitted = state_po_set.difference(states_included)
     print("States ommitted ({}): {}".format(len(states_ommitted), states_ommitted))
-    file_path = "output/{}-gerrymetrics-format.csv".format(name)
+    file_path = "election_data/gerrymetrics_format/{}-gerrymetrics-format.csv".format(name)
     print("Saving df to : ", file_path)
-    df.to_csv(file_path)
+    df.to_csv(file_path, index=False)

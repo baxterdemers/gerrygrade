@@ -4,7 +4,7 @@ The goal of the data cleaning in this repo is to fix, clean, and transform the e
 
 **MEDSL Data corrections**
 
-The methods with the 'fix' prefix implement corrections to the MEDSL source data while not modifying the schema. Therefore, they would be generally applicable to anyone hoping to use a cleaner version of the dataset. 
+The methods with the 'fix' prefix (in `cleanStateLeg2016` and `cleanStateLeg2018`) implement corrections to the MEDSL source data while not modifying the schema. Therefore, they would be generally applicable to anyone hoping to use a cleaner version of the dataset. 
 
 Additionally, these methods are designed to be readable and reproducible such that one could add or subtract individual changes to transform the dataset subject to what they believe is most accurate for their purposes. The source data contains an non-negligible number of inaccuracies which I discovered when performing validation for use with [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests). Therefore, the errors discovered and their corresponding fixes are limited in scope to state legislature results that are useable with gerrymetrics (e.g. excluding legislative chambers with multimember districts - more under 'reasons for ommision'). If one wishes to use the dataset in a more holisitic manner, I would highly reccomend additional validation to looks for inconsitencies.
 
