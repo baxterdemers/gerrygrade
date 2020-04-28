@@ -20,7 +20,7 @@ The main steps were:
 
 ## 1. Cleaning Election Results
 
-**MEDSL State Legislature Election Results |**
+### MEDSL State Legislature Election Results
 The methods with the 'fix' prefix (in `cleanStateLeg2016.py` and `cleanStateLeg2018.py`) implement corrections to the MEDSL source data while not modifying the schema. Therefore, they would be generally applicable to anyone hoping to use a cleaner version of the dataset. 
 
 Additionally, these methods are designed to be readable and reproducible such that one could easily transform the dataset to what they believe is most accurate using the framework in this repo. The source data contains an non-negligible number of inaccuracies which I discovered when performing validation for use with [gerrymetrics](https://github.com/PrincetonUniversity/gerrymandertests). Therefore, the errors discovered and their corresponding fixes are limited in scope to state legislature results that are useable with gerrymetrics (e.g. excluding legislative chambers with multimember districts - more under 'reasons for ommision'). If one wishes to use the dataset in a more comprehensive manner, I would highly reccomend additional validation to looks for inconsitencies.
@@ -38,7 +38,8 @@ For a holistic view of the errors I found and corrected, review the methods with
 
 The corrections were primarily made with respect to [Ballotpedia](https://ballotpedia.org/State_legislative_elections). I attempted to further validate the ballotpedia content when possible e.g. visting a candidate's website to determine their politial party. 
 
-**PGP US House of Representatives Election Results |** NC-9 was missing from the 2018 election results, so I added that data in `cleanUSHORpost1948.py`. I have also submitted a [PR](https://github.com/PrincetonUniversity/gerrymandertests/pull/5) to fix this in the source data and I will update this once the PR is merged. 
+### PGP US House of Representatives Election Results
+NC-9 was missing from the 2018 election results, so I added that data in `cleanUSHORpost1948.py`. I have also submitted a [PR](https://github.com/PrincetonUniversity/gerrymandertests/pull/5) to fix this in the source data and I will update this once the PR is merged. 
 
 ## 2. Conform and Transform to gerrymetrics schema
 
